@@ -183,11 +183,11 @@ function renderConsole() {
 }
 document.getElementById('btnPause').addEventListener('click', function () {
   consolePaused = !consolePaused;
-  this.textContent = consolePaused ? '▶ Resume' : '⏸ Pause';
+  this.innerHTML = consolePaused ? '<svg class="icon icon-sm"><use href="#ic-console"/></svg> Resume' : '<svg class="icon icon-sm"><use href="#ic-pause"/></svg> Pause';
 });
 document.getElementById('btnAutoScroll').addEventListener('click', function () {
   autoScroll = !autoScroll;
-  this.textContent = '📜 Auto Scroll: ' + (autoScroll ? 'ON' : 'OFF');
+  this.innerHTML = '<svg class="icon icon-sm"><use href="#ic-scroll"/></svg> Auto Scroll: ' + (autoScroll ? 'ON' : 'OFF');
 });
 document.getElementById('btnClear').addEventListener('click', () => { consoleLogs = []; renderConsole(); });
 document.getElementById('btnExport').addEventListener('click', () => {

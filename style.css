@@ -1,4 +1,10 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+
+/* Icon tự vẽ (SVG inline, thay thế emoji) */
+.icon{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-4px}
+.logo .icon{width:22px;height:22px;stroke:var(--red)}
+.icon-sm{width:14px;height:14px}
+.status-icon{width:28px;height:28px;stroke:var(--red)}
 :root{--red:#c00;--red-dark:#a00;--red-light:#fff0f0;--border:#eee;--text:#222;--muted:#888;--bg:#fafafa}
 body{background:var(--bg);color:var(--text);display:flex;min-height:100vh}
 

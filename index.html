@@ -8,17 +8,38 @@
 </head>
 <body>
 
+<!-- Icon definitions (tự vẽ, dùng chung qua <use>) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="ic-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+<symbol id="ic-console" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M7 8l3 2.5L7 13"/><path d="M12 13h5"/><path d="M8 20h8"/><path d="M12 16v4"/></symbol>
+<symbol id="ic-devices" viewBox="0 0 24 24"><rect x="3" y="4" width="13" height="9" rx="1.5"/><path d="M7 20h5"/><path d="M9.5 13v7"/><rect x="17" y="15" width="5" height="7" rx="1"/></symbol>
+<symbol id="ic-status" viewBox="0 0 24 24"><circle cx="5" cy="19" r="1.6"/><path d="M3 15a8 8 0 0 1 8 8"/><path d="M3 11a12 12 0 0 1 12 12"/><path d="M3 7a16 16 0 0 1 16 16"/></symbol>
+<symbol id="ic-alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3z"/><path d="M12 10v4"/><path d="M12 17.5v.1"/></symbol>
+<symbol id="ic-admin" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></symbol>
+<symbol id="ic-logs" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h2"/></symbol>
+<symbol id="ic-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.2-1.6l2-1.5-2-3.5-2.3.9a7 7 0 0 0-2.8-1.6L13.3 2h-4l-.4 2.7a7 7 0 0 0-2.8 1.6l-2.3-.9-2 3.5 2 1.5A7 7 0 0 0 3.6 12c0 .5 0 1 .2 1.6l-2 1.5 2 3.5 2.3-.9c.8.7 1.8 1.3 2.8 1.6l.4 2.7h4l.4-2.7a7 7 0 0 0 2.8-1.6l2.3.9 2-3.5-2-1.5c.1-.5.2-1 .2-1.6z"/></symbol>
+<symbol id="ic-menu" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+<symbol id="ic-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+<symbol id="ic-scroll" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/><path d="M17 15l3 3 3-3" transform="translate(-3 0)"/></symbol>
+<symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+<symbol id="ic-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/></symbol>
+</defs>
+</svg>
+
 <aside class="sidebar" id="sidebar">
-  <div class="logo">🛡️ NetGuard</div>
+  <div class="logo"><svg class="icon"><use href="#ic-shield"/></svg> NetGuard</div>
   <nav>
-    <a href="#dashboard" data-page="dashboard" class="active">📊 Dashboard</a>
-    <a href="#console" data-page="console">🖥️ Network Console</a>
-    <a href="#devices" data-page="devices">💻 Network Devices</a>
-    <a href="#status" data-page="status">📡 Network Status</a>
-    <a href="#alerts" data-page="alerts">🚨 Alerts</a>
-    <a href="#admin" data-page="admin">👤 Admin Management</a>
-    <a href="#logs" data-page="logs">📜 Activity Logs</a>
-    <a href="#settings" data-page="settings">⚙️ Settings</a>
+    <a href="#dashboard" data-page="dashboard" class="active"><svg class="icon"><use href="#ic-dashboard"/></svg> Dashboard</a>
+    <a href="#console" data-page="console"><svg class="icon"><use href="#ic-console"/></svg> Network Console</a>
+    <a href="#devices" data-page="devices"><svg class="icon"><use href="#ic-devices"/></svg> Network Devices</a>
+    <a href="#status" data-page="status"><svg class="icon"><use href="#ic-status"/></svg> Network Status</a>
+    <a href="#alerts" data-page="alerts"><svg class="icon"><use href="#ic-alert"/></svg> Alerts</a>
+    <a href="#admin" data-page="admin"><svg class="icon"><use href="#ic-admin"/></svg> Admin Management</a>
+    <a href="#logs" data-page="logs"><svg class="icon"><use href="#ic-logs"/></svg> Activity Logs</a>
+    <a href="#settings" data-page="settings"><svg class="icon"><use href="#ic-settings"/></svg> Settings</a>
   </nav>
   <div class="user-box">
     <b id="sbUsername">-</b>
@@ -29,7 +50,7 @@
 <div class="main">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px">
-      <button class="menu-toggle" id="menuToggle">☰</button>
+      <button class="menu-toggle" id="menuToggle"><svg class="icon"><use href="#ic-menu"/></svg></button>
       <h2 id="pageTitle">Dashboard</h2>
     </div>
     <div class="actions">
@@ -62,15 +83,15 @@
     <section class="page" id="page-console">
       <div class="panel">
         <div class="console-toolbar">
-          <input type="text" id="consoleSearch" placeholder="🔍 Tìm log...">
+          <input type="text" id="consoleSearch" placeholder="Tìm log...">
           <div class="chip active" data-filter="ALL">ALL</div>
           <div class="chip" data-filter="INFO">INFO</div>
           <div class="chip" data-filter="WARNING">WARNING</div>
           <div class="chip" data-filter="ERROR">ERROR</div>
-          <button class="btn" id="btnPause">⏸ Pause</button>
-          <button class="btn" id="btnAutoScroll">📜 Auto Scroll: ON</button>
-          <button class="btn" id="btnClear">🗑 Clear</button>
-          <button class="btn btn-primary" id="btnExport">⬇ Export</button>
+          <button class="btn" id="btnPause"><svg class="icon icon-sm"><use href="#ic-pause"/></svg> Pause</button>
+          <button class="btn" id="btnAutoScroll"><svg class="icon icon-sm"><use href="#ic-scroll"/></svg> Auto Scroll: ON</button>
+          <button class="btn" id="btnClear"><svg class="icon icon-sm"><use href="#ic-trash"/></svg> Clear</button>
+          <button class="btn btn-primary" id="btnExport"><svg class="icon icon-sm"><use href="#ic-download"/></svg> Export</button>
         </div>
         <div class="console-box" id="consoleBox"></div>
       </div>
@@ -80,7 +101,7 @@
     <section class="page" id="page-devices">
       <div class="panel">
         <div class="table-toolbar">
-          <input type="text" id="devSearch" placeholder="🔍 Tìm thiết bị...">
+          <input type="text" id="devSearch" placeholder="Tìm thiết bị...">
           <select id="devFilter">
             <option value="ALL">Tất cả trạng thái</option>
             <option value="online">Online</option>
