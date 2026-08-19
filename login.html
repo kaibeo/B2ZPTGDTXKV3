@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Đăng nhập | NetGuard</title>
+<link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+<div class="login-box">
+  <h1>🛡️ NetGuard</h1>
+  <p>Hệ thống quản lý mạng nội bộ</p>
+  <div class="error-msg" id="errorMsg">Sai tài khoản hoặc mật khẩu!</div>
+  <form id="loginForm">
+    <div class="field">
+      <label>Tên đăng nhập</label>
+      <input type="text" id="username" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label>Mật khẩu</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" autocomplete="current-password" required>
+        <button type="button" class="pw-toggle" id="pwToggle">HIỆN</button>
+      </div>
+    </div>
+    <button type="submit" class="login-btn">Đăng nhập</button>
+  </form>
+  <div class="hint">Mặc định: admin / admin123</div>
+</div>
+<script src="js/auth.js"></script>
+<script>
+document.getElementById('pwToggle').addEventListener('click',()=>{
+  const pw=document.getElementById('password');
+  const btn=document.getElementById('pwToggle');
+  if(pw.type==='password'){pw.type='text';btn.textContent='ẨN';}else{pw.type='password';btn.textContent='HIỆN';}
+});
+document.getElementById('loginForm').addEventListener('submit',(e)=>{
+  e.preventDefault();
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value;
+  const res=Auth.login(u,p);
+  if(res.ok){ window.location.href='index.html'; }
+  else{
+    const err=document.getElementById('errorMsg');
+    err.textContent=res.msg;
+    err.style.display='block';
+  }
+});
+if(Auth.isLoggedIn()) window.location.href='index.html';
+</script>
+</body>
+</html>
