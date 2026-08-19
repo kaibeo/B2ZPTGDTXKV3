@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NOC // Hệ Thống Quản Lý Mạng Nội Bộ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  /* ================= RESET & VARIABLES ================= */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080C14;
+    --bg2: #0B111D;
+    --panel: #0F1826;
+    --panel2: #111C2E;
+    --border: #1A2942;
+    --cyan: #06B6D4;
+    --blue: #3B82F6;
+    --green: #22D3A5;
+    --amber: #F59E0B;
+    --red: #F43F5E;
+    --text: #E5EEFB;
+    --sub: #7C93B8;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    background-image: 
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(59,130,246,0.12), transparent 60%),
+      linear-gradient(rgba(30,58,138,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,58,138,0.08) 1px, transparent 1px);
+    background-size: 100% 100%, 28px 28px, 28px 28px;
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mono { font-family: 'Courier New', Courier, monospace; }
+  .hidden { display: none !important; }
+
+  /* ================= LOGIN SCREEN ================= */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(17, 28, 46, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 0 24px rgba(6,182,212,0.15);
+  }
+  .logo-box {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, #0B1424, #111C2E);
+    border: 1px solid rgba(59,130,246,0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px auto;
+  }
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 11px; color: var(--sub); margin-bottom: 6px; }
+  .input-wrapper { position: relative; display: flex; align-items: center; }
+  .input-icon { position: absolute; left: 12px; width: 16px; height: 16px; stroke: #5A7CA8; }
+  .form-input, select {
+    width: 100%; padding: 10px 12px 10px 38px;
+    background: #0B1424; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 14px; outline: none;
+  }
+  .form-input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(6,182,212,0.2); }
+  .btn-submit {
+    width: 100%; padding: 12px; border: none; border-radius: 8px;
+    background: linear-gradient(135deg, #0EA5C9, #2563EB);
+    color: #FFF; font-size: 14px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 0 16px rgba(6,182,212,0.3);
+  }
+
+  /* ================= LAYOUT ================= */
+  .app-container { display: flex; flex-direction: column; min-height: 100vh; }
+  
+  /* Mobile Header */
+  .mobile-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: var(--bg2); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 40;
+  }
+  .menu-btn {
+    background: var(--panel2); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 10px; border-radius: 6px; cursor: pointer;
+  }
+
+  /* Sidebar Drawer */
+  aside {
+    width: 240px; background: var(--bg2); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 50; transition: transform 0.25s ease;
+  }
+  .brand-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .nav-menu { flex: 1; padding: 12px 8px; }
+  .nav-section { font-size: 10px; color: var(--sub); padding: 8px 12px; letter-spacing: 1px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    color: var(--text); text-decoration: none; font-size: 13px; border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .nav-item.active { background: rgba(6,182,212,0.15); border-left: 3px solid var(--cyan); color: #CFF7FF; font-weight: 600; }
+  .badge { margin-left: auto; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(6,182,212,0.15); color: var(--cyan); }
+
+  /* Drawer Overlay for Mobile */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 45; display: none;
+  }
+
+  /* Responsive Layout Handling */
+  @media (max-width: 768px) {
+    aside { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); }
+    aside.open { transform: translateX(0); }
+    .overlay.show { display: block; }
+    .desktop-only { display: none !important; }
+  }
+  @media (min-width: 769px) {
+    .app-container { flex-direction: row; }
+    .mobile-header { display: none; }
+    aside { position: static; transform: none !important; }
+  }
+
+  /* ================= MAIN CONTENT ================= */
+  main { flex: 1; padding: 16px; overflow-y: auto; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .panel { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+
+  /* Grid Responsive Stats */
+  .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  @media (min-width: 769px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+  
+  .stat-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .stat-val { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .stat-sub { font-size: 11px; color: var(--sub); }
+
+  /* ================= RESPONSIVE TABLES & CARDS ================= */
+  /* Desktop Table */
+  .table-wrapper { display: none; }
+  @media (min-width: 769px) {
+    .table-wrapper { display: block; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--sub); font-size: 11px; }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  }
+
+  /* Mobile Data Cards */
+  .card-list { display: flex; flex-direction: column; gap: 10px; }
+  @media (min-width: 769px) { .card-list { display: none; } }
+  
+  .data-card {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .data-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .data-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: var(--sub); }
+
+  /* Badges & Buttons */
+  .tag { padding: 3px 8px; border-radius: 12px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; }
+  .tag-online { background: rgba(34,211,165,0.1); color: var(--green); border: 1px solid rgba(34,211,165,0.2); }
+  .tag-offline { background: rgba(255,255,255,0.05); color: var(--sub); border: 1px solid var(--border); }
+  .pulse-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .btn-group { display: flex; gap: 8px; margin-top: 4px; }
+  .btn-sm { flex: 1; padding: 6px; font-size: 11px; border-radius: 6px; border: none; cursor: pointer; text-align: center; }
+  .btn-blue { background: rgba(59,130,246,0.15); color: #93C5FD; border: 1px solid rgba(59,130,246,0.3); }
+  .btn-red { background: rgba(244,63,94,0.15); color: #FCA5A5; border: 1px solid rgba(244,63,94,0.3); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(3,7,14,0.8);
+    display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="logo-box">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2">
+        <path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/>
+      </svg>
+    </div>
+    <h3 style="text-align:center; font-size:18px;">NOC ACCESS PORTAL</h3>
+    <p class="mono" style="text-align:center; font-size:10px; color:var(--sub); margin-bottom:20px;">HỆ THỐNG QUẢN LÝ MẠNG</p>
+
+    <form onsubmit="event.preventDefault(); doLogin();">
+      <div class="form-group">
+        <label class="form-label mono">TÀI KHOẢN</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="3.2"/><path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5"/></svg>
+          <input type="text" value="admin.noc" class="form-input mono">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label mono">MẬT KHẨU</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="10.5" width="14" height="9" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
+          <input type="password" value="••••••••••" class="form-input mono">
+        </div>
+      </div>
+      <button type="submit" class="btn-submit" style="margin-top:16px;">ĐĂNG NHẬP</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= MAIN APP ================= -->
+<div id="mainApp" class="app-container hidden">
+  
+  <!-- MOBILE TOPBAR -->
+  <div class="mobile-header">
+    <button class="menu-btn" onclick="toggleDrawer(true)">☰</button>
+    <span class="mono" style="font-weight:bold; font-size:14px;">NOC CORE</span>
+    <span class="tag tag-online mono"><span class="pulse-dot"></span> 2.4.1</span>
+  </div>
+
+  <div id="drawerOverlay" class="overlay" onclick="toggleDrawer(false)"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="brand-header">
+      <div class="logo-box" style="width:32px; height:32px; margin:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"/></svg>
+      </div>
+      <div>
+        <div class="mono" style="font-weight:bold; font-size:13px;">NOC CORE</div>
+        <div class="mono" style="font-size:9px; color:var(--sub);">ONLINE</div>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <div class="nav-section mono">TỔNG QUAN</div>
+      <a href="#" onclick="showTab('dashboard')" id="nav-dashboard" class="nav-item active">Dashboard</a>
+      <div class="nav-section mono">QUẢN LÝ</div>
+      <a href="#" onclick="showTab('devices')" id="nav-devices" class="nav-item">Thiết Bị <span class="badge">24</span></a>
+      <a href="#" onclick="showTab('accounts')" id="nav-accounts" class="nav-item">Tài Khoản Mạng <span class="badge">12</span></a>
+    </nav>
+    <div style="padding: 12px; border-top: 1px solid var(--border);">
+      <button onclick="doLogout()" class="btn-submit" style="background: transparent; border: 1px solid var(--border); color: var(--sub); padding:8px;">Đăng Xuất</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main>
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle" style="font-size: 18px;">Dashboard Tổng Quan</h1>
+        <p class="mono" style="font-size: 10px; color: var(--sub);">Cập nhật mỗi 5s</p>
+      </div>
+      <div class="tag tag-online mono desktop-only"><span class="pulse-dot"></span> SYSTEM NORMAL</div>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard">
+      <div class="grid-4">
+        <div class="stat-card"><div class="stat-sub">Online</div><div class="stat-val mono" style="color:var(--cyan);">18</div></div>
+        <div class="stat-card"><div class="stat-sub">Offline</div><div class="stat-val mono" style="color:var(--red);">6</div></div>
+        <div class="stat-card"><div class="stat-sub">Active Acc</div><div class="stat-val mono" style="color:var(--blue);">12</div></div>
+        <div class="stat-card"><div class="stat-sub">Cảnh báo</div><div class="stat-val mono" style="color:var(--amber);">3</div></div>
+      </div>
+      <div class="panel">
+        <h3 style="font-size: 13px; margin-bottom: 12px;">Băng Thông Mạng (Mbps)</h3>
+        <div style="height: 200px; position:relative; width:100%;"><canvas id="bandwidthChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- DEVICES TAB -->
+    <div id="tab-devices" class="hidden">
+      <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:12px;">
+        <input type="text" placeholder="Tìm kiếm IP, MAC..." class="form-input mono" style="padding-left:12px; font-size:12px;">
+        <button onclick="openModal('deviceModal')" class="btn-submit" style="width:auto; padding:0 12px; font-size:12px; whitespace:nowrap;">+ Thêm</button>
+      </div>
+      
+      <!-- Table View PC -->
+      <div class="panel table-wrapper" style="padding:0;">
+        <table>
+          <thead>
+            <tr class="mono">
+              <th>TÊN THIẾT BỊ</th><th>IP</th><th>MAC</th><th>LOẠI</th><th>TRẠNG THÁI</th><th style="text-align:right;">THAO TÁC</th>
+            </tr>
+          </thead>
+          <tbody id="deviceTable"></tbody>
+        </table>
+      </div>
+
+      <!-- Card View Mobile -->
+      <div id="deviceCards" class="card-list"></div>
+    </div>
+
+    <!-- ACCOUNTS TAB -->
+    <div id="tab-accounts" class="hidden">
+      <div class="panel table-wrapper" style="padding:0;">
+        <table>
+          <thead>
+            <tr class="mono">
+              <th>TÊN ĐĂNG NHẬP</th><th>QUYỀN</th><th>BĂNG THÔNG</th><th>GIỚI HẠN</th><th style="text-align:right;">THAO TÁC</th>
+            </tr>
+          </thead>
+          <tbody id="accountTable"></tbody>
+        </table>
+      </div>
+
+      <div id="accountCards" class="card-list"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="deviceModal" class="modal-overlay hidden">
+  <div class="login-card">
+    <h3 style="margin-bottom: 12px; font-size:15px;">Thêm Thiết Bị Mới</h3>
+    <form onsubmit="event.preventDefault(); closeModal('deviceModal');">
+      <div class="form-group"><label class="form-label mono">TÊN THIẾT BỊ</label><input type="text" class="form-input mono" placeholder="PC-KeToan"></div>
+      <div class="form-group"><label class="form-label mono">ĐỊA CHỈ IP</label><input type="text" class="form-input mono" placeholder="192.168.1.x"></div>
+      <div class="form-group"><label class="form-label mono">ĐỊA CHỈ MAC</label><input type="text" class="form-input mono" placeholder="XX:XX:XX:XX:XX:XX"></div>
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button type="button" onclick="closeModal('deviceModal')" class="btn-submit" style="background:transparent; border:1px solid var(--border);">Hủy</button>
+        <button type="submit" class="btn-submit">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const devices = [
+  {name:"PC-KeToan-01", ip:"192.168.1.12", mac:"3C:97:0E:1A:2B", type:"PC", status:"online"},
+  {name:"Laptop-GiamDoc", ip:"192.168.1.15", mac:"A4:5E:60:F1:2B", type:"Laptop", status:"online"},
+  {name:"Router-Chinh", ip:"192.168.1.1", mac:"00:1A:2B:3C:4D", type:"Router", status:"online"},
+  {name:"Printer-Office", ip:"192.168.1.70", mac:"88:66:5A:12:0C", type:"Printer", status:"offline"}
+];
+
+const accounts = [
+  {user:"admin.noc", role:"Quản trị", bw:"Unlimited", limit:"5 TB"},
+  {user:"nv.ketoan01", role:"Nhân viên", bw:"50 Mbps", limit:"2 TB"},
+  {user:"guest_portal", role:"Khách", bw:"10 Mbps", limit:"1 TB"}
+];
+
+function toggleDrawer(open) {
+  document.getElementById('sidebar').classList.toggle('open', open);
+  document.getElementById('drawerOverlay').classList.toggle('show', open);
+}
+
+function showTab(tab) {
+  ['dashboard', 'devices', 'accounts'].forEach(t => {
+    document.getElementById('tab-' + t).classList.add('hidden');
+    document.getElementById('nav-' + t).classList.remove('active');
+  });
+  document.getElementById('tab-' + tab).classList.remove('hidden');
+  document.getElementById('nav-' + tab).classList.add('active');
+  
+  const titles = {dashboard: "Dashboard Tổng Quan", devices: "Quản Lý Thiết Bị", accounts: "Quản Lý Tài Khoản Mạng"};
+  document.getElementById('pageTitle').textContent = titles[tab];
+  toggleDrawer(false);
+}
+
+function renderData() {
+  // Render Desktop Tables
+  document.getElementById('deviceTable').innerHTML = devices.map(d => `
+    <tr>
+      <td><b>${d.name}</b></td>
+      <td class="mono">${d.ip}</td>
+      <td class="mono" style="color:var(--sub);">${d.mac}</td>
+      <td>${d.type}</td>
+      <td><span class="tag ${d.status==='online'?'tag-online':'tag-offline'} mono"><span class="pulse-dot"></span>${d.status.toUpperCase()}</span></td>
+      <td style="text-align:right;">
+        <button class="btn-sm btn-blue">Sửa</button>
+        <button class="btn-sm btn-red">Chặn</button>
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('accountTable').innerHTML = accounts.map(a => `
+    <tr>
+      <td class="mono"><b>${a.user}</b></td>
+      <td><span class="tag tag-online mono">${a.role}</span></td>
+      <td class="mono">${a.bw}</td>
+      <td class="mono">${a.limit}</td>
+      <td style="text-align:right;"><button class="btn-sm btn-red">Khóa</button></td>
+    </tr>
+  `).join('');
+
+  // Render Mobile Cards
+  document.getElementById('deviceCards').innerHTML = devices.map(d => `
+    <div class="data-card">
+      <div class="data-card-header">
+        <b style="font-size:13px;">${d.name}</b>
+        <span class="tag ${d.status==='online'?'tag-online':'tag-offline'} mono"><span class="pulse-dot"></span>${d.status.toUpperCase()}</span>
+      </div>
+      <div class="data-card-body mono">
+        <div>IP: <span style="color:var(--text);">${d.ip}</span></div>
+        <div>MAC: <span style="color:var(--text);">${d.mac}</span></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn-sm btn-blue">Cấp quyền</button>
+        <button class="btn-sm btn-red">Chặn</button>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('accountCards').innerHTML = accounts.map(a => `
+    <div class="data-card">
+      <div class="data-card-header">
+        <b class="mono" style="font-size:13px;">${a.user}</b>
+        <span class="tag tag-online mono">${a.role}</span>
+      </div>
+      <div class="data-card-body mono">
+        <div>Băng thông: <span style="color:var(--text);">${a.bw}</span></div>
+        <div>Giới hạn: <span style="color:var(--text);">${a.limit}</span></div>
+      </div>
+      <div class="btn-group">
+        <button class="btn-sm btn-red">Khóa tài khoản</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function doLogin() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  initChart();
+  renderData();
+}
+
+function doLogout() {
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+let chart;
+function initChart() {
+  if (chart) return;
+  const ctx = document.getElementById('bandwidthChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['0s', '5s', '10s', '15s', '20s', '25s'],
+      datasets: [
+        { label: 'DL', data: [40, 65, 50, 85, 60, 75], borderColor: '#06B6D4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.3 },
+        { label: 'UL', data: [15, 25, 20, 35, 30, 28], borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 }
+      ]
+    },
+  
