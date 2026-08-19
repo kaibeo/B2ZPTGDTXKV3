@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NOC Console</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; }
+  * { box-sizing: border-box; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// Minimal inline icon set (feather/lucide-style paths), no external deps.
+function makeIcon(paths, viewBox = "0 0 24 24") {
+  return function Icon({ size = 16, className = "", strokeWidth = 2, ...rest }) {
+    return React.createElement(
+      "svg",
+      {
+        width: size, height: size, viewBox, fill: "none",
+        stroke: "currentColor", strokeWidth, strokeLinecap: "round", strokeLinejoin: "round",
+        className, ...rest
+      },
+      paths.map((d, i) => React.createElement("path", { key: i, d }))
+    );
+  };
+}
+function makeIconWithCircle(paths, circles = [], viewBox = "0 0 24 24") {
+  return function Icon({ size = 16, className = "", strokeWidth = 2, ...rest }) {
+    return React.createElement(
+      "svg",
+      {
+        width: size, height: size, viewBox, fill: "none",
+        stroke: "currentColor", strokeWidth, strokeLinecap: "round", strokeLinejoin: "round",
+        className, ...rest
+      },
+      [
+        ...paths.map((d, i) => React.createElement("path", { key: "p" + i, d })),
+        ...circles.map((c, i) => React.createElement("circle", { key: "c" + i, cx: c[0], cy: c[1], r: c[2] }))
+      ]
+    );
+  };
+}
+
+const Shield = makeIcon(["M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z"]);
+const ShieldCheck = makeIcon(["M12 2 L20 6 V12 C20 17 16.5 20.5 12 22 C7.5 20.5 4 17 4 12 V6 Z", "M9 12 L11 14 L15.5 9"]);
+const LayoutDashboard = makeIcon(["M3 3 H11 V11 H3 Z", "M13 3 H21 V9 H13 Z", "M13 12 H21 V21 H13 Z", "M3 14 H11 V21 H3 Z"]);
+const Network = makeIconWithCircle(["M12 6 V10", "M6 18 L9 14", "M18 18 L15 14"], [[12,4,2],[6,20,2],[18,20,2]]);
+const Server = makeIcon(["M2 3 H22 V9 H2 Z", "M2 15 H22 V21 H2 Z", "M6 6 H6.01", "M6 18 H6.01"]);
+const Terminal = makeIcon(["M4 5 L10 12 L4 19", "M12 19 H20"]);
+const Activity = makeIcon(["M3 12 H7 L10 20 L14 4 L17 12 H21"]);
+const Radio = makeIconWithCircle(["M6 8 C4 10 4 14 6 16", "M18 8 C20 10 20 14 18 16", "M9 11 C8 12 8 13 9 14", "M15 11 C16 12 16 13 15 14"], [[12,12.5,1.4]]);
+const Bell = makeIcon(["M6 9 C6 5 8.5 3 12 3 C15.5 3 18 5 18 9 C18 14 20 16 20 16 H4 C4 16 6 14 6 9 Z", "M10 20 C10.5 21 11.2 21.5 12 21.5 C12.8 21.5 13.5 21 14 20"]);
+const FileClock = makeIconWithCircle(["M13 2 H5 C4 2 3 3 3 4 V20 C3 21 4 22 5 22 H14 C15 22 16 21 16 20", "M13 2 L19 8 H13 Z"], [[16,17,4.5]]);
+const Users = makeIconWithCircle(["M2 21 C2 17 5 15 9 15 C13 15 16 17 16 21", "M14 15 C17 15.3 19 17 19 21"], [[9,8,4],[16,9,3]]);
+const Lock = makeIcon(["M6 11 H18 V21 H6 Z", "M8 11 V7 C8 4.5 9.8 3 12 3 C14.2 3 16 4.5 16 7 V11"]);
+const Settings = makeIconWithCircle(["M12 2 V5", "M12 19 V22", "M4.2 4.2 L6.3 6.3", "M17.7 17.7 L19.8 19.8", "M2 12 H5", "M19 12 H22", "M4.2 19.8 L6.3 17.7", "M17.7 6.3 L19.8 4.2"], [[12,12,4]]);
+const ChevronDown = makeIcon(["M6 9 L12 15 L18 9"]);
+const ChevronRight = makeIcon(["M9 6 L15 12 L9 18"]);
+const ChevronsUpDown = makeIcon(["M7 15 L12 20 L17 15", "M7 9 L12 4 L17 9"]);
+const LogOut = makeIcon(["M9 21 H5 C3.9 21 3 20 3 19 V5 C3 4 3.9 3 5 3 H9", "M16 17 L21 12 L16 7", "M21 12 H9"]);
+const User = makeIconWithCircle(["M4 21 C4 17 7.5 15 12 15 C16.5 15 20 17 20 21"], [[12,8,4]]);
+const Search = makeIconWithCircle(["M20 20 L16.5 16.5"], [[11,11,7]]);
+const Filter = makeIcon(["M3 4 H21 L14 13 V20 L10 22 V13 Z"]);
+const Download = makeIcon(["M12 3 V15", "M7 10 L12 15 L17 10", "M4 19 H20"]);
+const Pause = makeIcon(["M7 4 H10 V20 H7 Z", "M14 4 H17 V20 H14 Z"]);
+const Play = makeIcon(["M6 4 L20 12 L6 20 Z"]);
+const Trash2 = makeIcon(["M4 7 H20", "M9 7 V4 H15 V7", "M6 7 L7 21 H17 L18 7", "M10 11 V17", "M14 11 V17"]);
+const CheckCircle2 = makeIconWithCircle(["M8.5 12.5 L11 15 L16 9"], [[12,12,9]]);
+const XCircle = makeIconWithCircle(["M9 9 L15 15", "M15 9 L9 15"], [[12,12,9]]);
+const AlertTriangle = makeIcon(["M12 3 L22 20 H2 Z", "M12 9 V14", "M12 17 H12.01"]);
+const Wifi = makeIcon(["M2 8.5 C7.5 3.5 16.5 3.5 22 8.5", "M5.5 12 C9 9 15 9 18.5 12", "M9 15.5 C10.5 14 13.5 14 15 15.5", "M12 19 H12.01"]);
+const WifiOff = makeIcon(["M2 2 L22 22", "M8.5 16.5 C10 15 14 15 15.5 16.5", "M5 12.8 C6.5 11.5 8 10.7 9.6 10.3", "M16.7 10.4 C18 10.8 19.3 11.4 20.5 12.2", "M2 8.5 C4 6.7 6.3 5.4 8.8 4.7", "M19 8.5 C20 9.2 20.9 10 21.7 10.9", "M12 19 H12.01"]);
+const Globe = makeIconWithCircle(["M2 12 H22", "M12 2 C14.5 4.5 15.7 8 15.7 12 C15.7 16 14.5 19.5 12 22 C9.5 19.5 8.3 16 8.3 12 C8.3 8 9.5 4.5 12 2 Z"], [[12,12,10]]);
+const ArrowDown = makeIcon(["M12 4 V20", "M6 14 L12 20 L18 14"]);
+const ArrowUp = makeIcon(["M12 20 V4", "M6 10 L12 4 L18 10"]);
+const Gauge = makeIconWithCircle(["M12 12 L16 8", "M4.9 19 C3 16.7 2 13.9 2 11 C2 5.5 6.5 1 12 1 C17.5 1 22 5.5 22 11 C22 13.9 21 16.7 19.1 19"], []);
+const HardDrive = makeIcon(["M3 12 H21 L18 20 H6 Z", "M3 12 L6 4 H18 L21 12", "M7.5 16 H7.51", "M11.5 16 H11.51"]);
+const Cpu = makeIcon(["M6 6 H18 V18 H6 Z", "M9 1 V6", "M15 1 V6", "M9 18 V23", "M15 18 V23", "M1 9 H6", "M1 15 H6", "M18 9 H23", "M18 15 H23"]);
+const MemoryStick = makeIcon(["M3 8 H21 V16 H3 Z", "M7 8 V4", "M11 8 V4", "M15 8 V4", "M19 8 V4", "M7 16 V20", "M11 16 V20"]);
+const X = makeIcon(["M6 6 L18 18", "M18 6 L6 18"]);
+const Eye = makeIconWithCircle(["M2 12 C4.5 6.5 9 4 12 4 C15 4 19.5 6.5 22 12 C19.5 17.5 15 20 12 20 C9 20 4.5 17.5 2 12 Z"], [[12,12,3]]);
+const EyeOff = makeIcon(["M2 2 L22 22", "M10.6 5.1 C11.1 5 11.5 5 12 5 C15 5 19.5 7.5 22 13 C21.2 14.7 20.2 16.1 19.1 17.2", "M6.6 6.6 C4.5 8 3 10.2 2 13 C4.5 18.5 9 21 12 21 C13.4 21 14.9 20.5 16.3 19.6", "M9.5 9.8 A3 3 0 0 0 14.2 14.5"]);
+const Plus = makeIcon(["M12 4 V20", "M4 12 H20"]);
+const MoreVertical = makeIconWithCircle([], [[12,5,1.3],[12,12,1.3],[12,19,1.3]]);
+const Ban = makeIconWithCircle(["M5 5 L19 19"], [[12,12,9]]);
+const Tag = makeIcon(["M20.6 12.6 L12.6 20.6 C12.2 21 11.6 21 11.2 20.6 L2.4 11.8 C2 11.4 2 10.8 2.4 10.4 L10.4 2.4 C10.6 2.2 10.8 2 11.1 2 H19 C19.6 2 20 2.4 20 3 V10.9 C20 11.2 19.9 11.5 19.7 11.7 Z", "M7 7 H7.01"]);
+const Clock = makeIconWithCircle(["M12 7 V12 L15.5 14.5"], [[12,12,9]]);
+const KeyRound = makeIconWithCircle(["M14.5 9.5 L21 3", "M17.5 6 L20 8.5", "M15 9 L17 11"], [[8,15,5]]);
+const AlertOctagon = makeIcon(["M7.9 2 H16.1 L22 7.9 V16.1 L16.1 22 H7.9 L2 16.1 V7.9 Z", "M12 8 V13", "M12 16 H12.01"]);
+const Info = makeIconWithCircle(["M12 16 V11", "M12 8 H12.01"], [[12,12,9]]);
+const RefreshCw = makeIcon(["M21 12 C21 16.9 16.9 21 12 21 C8.5 21 5.4 19 3.9 16", "M3 12 C3 7.1 7.1 3 12 3 C15.5 3 18.6 5 20.1 8", "M21 3 V8 H16", "M3 21 V16 H8"]);
+
+window.LucideReact = {
+  Shield, LayoutDashboard, Network, Server, Terminal, Activity, Radio,
+  Bell, FileClock, Users, Lock, Settings, ChevronDown, ChevronRight,
+  LogOut, User, Search, Filter, Download, Pause, Play, Trash2,
+  CheckCircle2, XCircle, AlertTriangle, Wifi, WifiOff, Globe,
+  ArrowDown, ArrowUp, Gauge, HardDrive, Cpu, MemoryStick, X, Eye,
+  EyeOff, Plus, MoreVertical, Ban, Tag, Clock, ShieldCheck, KeyRound,
+  AlertOctagon, Info, ChevronsUpDown, RefreshCw
+};
+window.dispatchEvent(new Event("lucide-ready"));
+
+</script>
+<script type="text/babel" data-presets="react">
+window.addEventListener("lucide-ready", () => {
+  const {
+    useState, useEffect, useRef, useCallback
+  } = React;
+  const {
+    Shield, LayoutDashboard, Network, Server, Terminal, Activity, Radio,
+    Bell, FileClock, Users, Lock, Settings, ChevronDown, ChevronRight,
+    LogOut, User, Search, Filter, Download, Pause, Play, Trash2,
+    CheckCircle2, XCircle, AlertTriangle, Wifi, WifiOff, Globe,
+    ArrowDown, ArrowUp, Gauge, HardDrive, Cpu, MemoryStick, X, Eye,
+    EyeOff, Plus, MoreVertical, Ban, Tag, Clock, ShieldCheck, KeyRound,
+    AlertOctagon, Info, ChevronsUpDown, RefreshCw
+  } = window.LucideReact;
+
+
+  /* ============================================================
+     MOCK DATA LAYER
+     In production this file's fetch/useEffect polling would call
+     real REST endpoints (see spec at bottom of chat response).
+     ============================================================ */
+
+  const RED = "#DC2626";
+  const RED_DARK = "#B91C1C";
+  const RED_SOFT = "#FEE2E2";
+
+  /* Custom hand-drawn logo mark (replaces the generic lucide Shield icon) */
+  function CustomLogoIcon({ size = 22, className = "" }) {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 48 48"
+        fill="none"
+        className={className}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M24 4 L41 11 V23 C41 33.5 34 40.5 24 44 C14 40.5 7 33.5 7 23 V11 Z"
+          fill="currentColor"
+          fillOpacity="0.16"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M16 24.5 L21.5 30 L33 17.5"
+          stroke="currentColor"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="24" cy="24" r="17.5" stroke="currentColor" strokeWidth="1.2" strokeOpacity="0.35" fill="none" />
+      </svg>
+    );
+  }
+
+  const seedDevices = [
+    { id: 1, name: "Router-Core-01", ip: "192.168.1.1", mac: "AC:22:0B:11:4F:02", type: "Router", status: "online", ping: 2, bandwidth: "42 Mbps", lastSeen: "now", connectedSince: "14d 3h", tags: ["core", "infra"] },
+    { id: 2, name: "SRV-DB-Primary", ip: "192.168.1.10", mac: "00:1A:2B:3C:4D:5E", type: "Server", status: "online", ping: 1, bandwidth: "128 Mbps", lastSeen: "now", connectedSince: "31d 9h", tags: ["database", "critical"] },
+    { id: 3, name: "SRV-Web-01", ip: "192.168.1.11", mac: "00:1A:2B:3C:4D:5F", type: "Server", status: "warning", ping: 84, bandwidth: "12 Mbps", lastSeen: "now", connectedSince: "31d 9h", tags: ["web"] },
+    { id: 4, name: "Switch-Floor2", ip: "192.168.1.20", mac: "9C:5C:8E:11:22:33", type: "Switch", status: "online", ping: 3, bandwidth: "88 Mbps", lastSeen: "now", connectedSince: "60d 1h", tags: ["infra"] },
+    { id: 5, name: "AP-Lobby", ip: "192.168.1.25", mac: "D8:3A:DD:44:55:66", type: "Access Point", status: "online", ping: 9, bandwidth: "31 Mbps", lastSeen: "now", connectedSince: "5d 22h", tags: ["wifi"] },
+    { id: 6, name: "Workstation-HR-04", ip: "192.168.1.54", mac: "3C:22:FB:77:88:99", type: "Workstation", status: "offline", ping: null, bandwidth: "0 Mbps", lastSeen: "12 min ago", connectedSince: "—", tags: [] },
+    { id: 7, name: "Printer-Ops", ip: "192.168.1.61", mac: "88:D7:F6:00:11:22", type: "Printer", status: "online", ping: 15, bandwidth: "1 Mbps", lastSeen: "now", connectedSince: "2d 4h", tags: [] },
+    { id: 8, name: "NVR-Security", ip: "192.168.1.70", mac: "70:4D:7B:33:44:55", type: "IoT / Camera", status: "online", ping: 6, bandwidth: "64 Mbps", lastSeen: "now", connectedSince: "90d 2h", tags: ["security", "critical"] },
+  ];
+
+  const seedServices = [
+    { name: "Internet Uplink", status: "operational", uptime: 99.97 },
+    { name: "Gateway", status: "operational", uptime: 99.99 },
+    { name: "DNS", status: "operational", uptime: 99.95 },
+    { name: "DHCP", status: "operational", uptime: 100 },
+    { name: "Core Router", status: "operational", uptime: 99.99 },
+    { name: "Internal Server", status: "degraded", uptime: 98.12 },
+    { name: "Database", status: "operational", uptime: 99.91 },
+    { name: "API Gateway", status: "operational", uptime: 99.88 },
+    { name: "Web Server", status: "operational", uptime: 99.94 },
+  ];
+
+  const seedAdmins = [
+    { id: 1, username: "admin.hoang", email: "hoang@company.local", role: "Super Admin", online: true, created: "2025-01-04", lastLogin: "Just now", locked: false },
+    { id: 2, username: "admin.linh", email: "linh@company.local", role: "Admin", online: true, created: "2025-03-18", lastLogin: "8 min ago", locked: false },
+    { id: 3, username: "viewer.tuan", email: "tuan@company.local", role: "Viewer", online: false, created: "2025-06-02", lastLogin: "2 days ago", locked: false },
+    { id: 4, username: "admin.mai", email: "mai@company.local", role: "Admin", online: false, created: "2024-11-29", lastLogin: "5 days ago", locked: true },
+  ];
+
+  const seedActivity = [
+    { id: 1, admin: "admin.hoang", action: "Logged in", ip: "192.168.1.5", time: "2026-08-19 09:12:03", status: "success" },
+    { id: 2, admin: "admin.linh", action: "Blocked device 192.168.1.54", ip: "192.168.1.8", time: "2026-08-19 09:05:41", status: "success" },
+    { id: 3, admin: "admin.mai", action: "Failed login attempt", ip: "203.0.113.4", time: "2026-08-19 08:58:12", status: "error" },
+    { id: 4, admin: "admin.hoang", action: "Created admin account viewer.tuan", ip: "192.168.1.5", time: "2026-08-18 17:44:20", status: "success" },
+    { id: 5, admin: "admin.linh", action: "Changed network settings", ip: "192.168.1.8", time: "2026-08-18 16:10:55", status: "success" },
+    { id: 6, admin: "admin.hoang", action: "Logged out", ip: "192.168.1.5", time: "2026-08-18 13:02:09", status: "success" },
+  ];
+
+  const seedAlerts = [
+    { id: 1, level: "critical", title: "Internal Server degraded", detail: "SRV-Web-01 response time exceeds 80ms threshold", time: "2 min ago", read: false },
+    { id: 2, level: "warning", title: "High ping detected", detail: "Device 192.168.1.11 ping at 84ms (threshold 50ms)", time: "3 min ago", read: false },
+    { id: 3, level: "warning", title: "Device offline", detail: "Workstation-HR-04 has not responded in 12 minutes", time: "12 min ago", read: false },
+    { id: 4, level: "info", title: "Bandwidth normalized", detail: "Network traffic returned to baseline levels", time: "38 min ago", read: true },
+    { id: 5, level: "critical", title: "Packet loss spike", detail: "3.2% packet loss detected on Gateway uplink", time: "1 hr ago", read: true },
+  ];
+
+  function genLog(i) {
+    const templates = [
+      { l: "INFO", m: () => `Device ${randIp()} connected` },
+      { l: "INFO", m: () => `Ping: ${(Math.random() * 20 + 1).toFixed(0)}ms` },
+      { l: "INFO", m: () => `Gateway status: ONLINE` },
+      { l: "WARNING", m: () => `Latency spike on ${randIp()}: ${(Math.random() * 100 + 60).toFixed(0)}ms` },
+      { l: "INFO", m: () => `Network traffic: ${(Math.random() * 40 + 20).toFixed(1)} Mbps` },
+      { l: "ERROR", m: () => `Device ${randIp()} not responding` },
+      { l: "INFO", m: () => `DHCP lease renewed for ${randIp()}` },
+      { l: "WARNING", m: () => `Packet loss detected: ${(Math.random() * 3).toFixed(1)}%` },
+    ];
+    const t = templates[Math.floor(Math.random() * templates.length)];
+    const now = new Date();
+    const ts = now.toTimeString().slice(0, 8);
+    return { id: i, time: ts, level: t.l, message: t.m() };
+  }
+  function randIp() {
+    return `192.168.1.${Math.floor(Math.random() * 200 + 2)}`;
+  }
+
+  /* ============================================================
+     SMALL UI PRIMITIVES
+     ============================================================ */
+
+  function StatusDot({ status }) {
+    const map = {
+      online: "bg-emerald-500",
+      operational: "bg-emerald-500",
+      offline: "bg-red-500",
+      down: "bg-red-500",
+      warning: "bg-amber-500",
+      degraded: "bg-amber-500",
+    };
+    return <span className={`inline-block w-2 h-2 rounded-full ${map[status] || "bg-gray-300"}`} />;
+  }
+
+  function Badge({ children, tone = "gray" }) {
+    const tones = {
+      gray: "bg-gray-100 text-gray-600",
+      red: "bg-red-50 text-red-700",
+      green: "bg-emerald-50 text-emerald-700",
+      amber: "bg-amber-50 text-amber-700",
+    };
+    return <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium ${tones[tone]}`}>{children}</span>;
+  }
+
+  function Card({ children, className = "", noPad = false }) {
+    return (
+      <div className={`bg-white rounded-xl border border-gray-200 shadow-sm ${noPad ? "" : "p-5"} ${className}`}>
+        {children}
+      </div>
+    );
+  }
+
+  function StatCard({ icon: Icon, label, value, sub, accent }) {
+    return (
+      <Card className="flex items-start justify-between">
+        <div>
+          <p className="text-[13px] text-gray-500 font-medium">{label}</p>
+          <p className="text-2xl font-semibold text-gray-900 mt-1 tabular-nums">{value}</p>
+          {sub && <p className="text-[12px] text-gray-400 mt-1">{sub}</p>}
+        </div>
+        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${accent ? "bg-red-50" : "bg-gray-50"}`}>
+          <Icon size={18} className={accent ? "text-red-600" : "text-gray-500"} strokeWidth={2} />
+        </div>
+      </Card>
+    );
+  }
+
+  function Sparkline({ data, color = RED, height = 44 }) {
+    if (!data.length) return null;
+    const max = Math.max(...data, 1);
+    const min = Math.min(...data, 0);
+    const range = max - min || 1;
+    const w = 100;
+    const pts = data.map((d, i) => {
+      const x = (i / (data.length - 1)) * w;
+      const y = height - ((d - min) / range) * (height - 6) - 3;
+      return `${x},${y}`;
+    }).join(" ");
+    const areaPts = `0,${height} ${pts} ${w},${height}`;
+    return (
+      <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
+        <polygon points={areaPts} fill={color} opacity="0.08" />
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  function Toast({ toasts, remove }) {
+    return (
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 w-80">
+        {toasts.map(t => (
+          <div key={t.id} className={`rounded-lg shadow-lg border px-4 py-3 flex items-start gap-2.5 bg-white animate-[fadein_.2s_ease] ${
+            t.tone === "error" ? "border-red-200" : t.tone === "warn" ? "border-amber-200" : "border-emerald-200"
+          }`}>
+            {t.tone === "error" ? <XCircle size={16} className="text-red-600 mt-0.5 shrink-0" /> :
+             t.tone === "warn" ? <AlertTriangle size={16} className="text-amber-600 mt-0.5 shrink-0" /> :
+             <CheckCircle2 size={16} className="text-emerald-600 mt-0.5 shrink-0" />}
+            <p className="text-[13px] text-gray-700 flex-1">{t.msg}</p>
+            <button onClick={() => remove(t.id)} className="text-gray-300 hover:text-gray-500">
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  function ConfirmModal({ open, title, body, onConfirm, onCancel, danger = true }) {
+    if (!open) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[2px] px-4">
+        <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-sm p-5">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${danger ? "bg-red-50" : "bg-gray-100"}`}>
+              <AlertTriangle size={16} className={danger ? "text-red-600" : "text-gray-600"} />
+            </div>
+            <h3 className="font-semibold text-gray-900 text-[15px]">{title}</h3>
+          </div>
+          <p className="text-[13px] text-gray-500 mb-5 leading-relaxed">{body}</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={onCancel} className="px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-gray-600 hover:bg-gray-100">Cancel</button>
+            <button onClick={onConfirm} className={`px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-white ${danger ? "bg-red-600 hover:bg-red-700" : "bg-gray-800 hover:bg-gray-900"}`}>
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ============================================================
+     LOGIN
+     ============================================================ */
+
+  function LoginPage({ onLogin }) {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPw, setShowPw] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const submit = (e) => {
+      e.preventDefault();
+      setError("");
+      if (!username || !password) { setError("Enter your username and password."); return; }
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
+        if (username === "Tk Admin" && password === "admin1") {
+          onLogin(username);
+        } else {
+          setError("Incorrect username or password.");
+        }
+      }, 600);
+    };
+
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="w-full max-w-sm">
+          <div className="flex flex-col items-center mb-7">
+            <div className="w-11 h-11 rounded-xl bg-red-600 flex items-center justify-center mb-3 shadow-sm shadow-red-200">
+              <CustomLogoIcon size={24} className="text-white" />
+            </div>
+            <h1 className="text-lg font-semibold text-gray-900">NOC Console</h1>
+            <p className="text-[13px] text-gray-400 mt-0.5">Internal Network Management</p>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <form onSubmit={submit} className="space-y-4">
+              <div>
+                <label className="text-[12px] font-medium text-gray-600 block mb-1.5">Username or email</label>
+                <input
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[14px] outline-none focus:border-red-400 focus:ring-2 focus:ring-red-50 transition"
+                  placeholder="Tk Admin"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-[12px] font-medium text-gray-600 block mb-1.5">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 pr-9 text-[14px] outline-none focus:border-red-400 focus:ring-2 focus:ring-red-50 transition"
+                    placeholder="••••••••"
+                  />
+                  <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-100 text-red-700 text-[12.5px] rounded-lg px-3 py-2 flex items-center gap-2">
+                  <AlertOctagon size={13} className="shrink-0" /> {error}
+                </div>
+              )}
+
+              <button type="submit" disabled={loading} className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-[14px] font-medium rounded-lg py-2.5 transition flex items-center justify-center gap-2">
+                {loading ? <RefreshCw size={14} className="animate-spin" /> : <Lock size={14} />}
+                {loading ? "Verifying..." : "Sign in"}
+              </button>
+            </form>
+          </div>
+          <p className="text-center text-[11.5px] text-gray-400 mt-4">
+            Session expires automatically after inactivity. Access restricted to authorized administrators.
+          </p>
+
+        </div>
+      </div>
+    );
+  }
+
+  /* ============================================================
+     SIDEBAR / TOPBAR
+     ============================================================ */
+
+  const NAV = [
+    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { key: "network", label: "Network", icon: Network, children: [
+      { key: "overview", label: "Overview" },
+      { key: "devices", label: "Devices" },
+      { key: "console", label: "Console" },
+      { key: "traffic", label: "Traffic" },
+      { key: "status", label: "Status" },
+    ]},
+    { key: "monitoring", label: "Monitoring", icon: Activity, children: [
+      { key: "alerts", label: "Alerts" },
+      { key: "logs", label: "Activity Logs" },
+    ]},
+    { key: "administration", label: "Administration", icon: Users, children: [
+      { key: "accounts", label: "Admin Accounts" },
+      { key: "permissions", label: "Permissions" },
+    ]},
+    { key: "settings", label: "Settings", icon: Settings, children: [
+      { key: "general", label: "General" },
+      { key: "sec-network", label: "Network" },
+      { key: "security", label: "Security" },
+    ]},
+  ];
+
+  function Sidebar({ page, setPage, open, setOpen }) {
+    const [expanded, setExpanded] = useState({ network: true, monitoring: true, administration: false, settings: false });
+
+    const isChildActive = (item) => item.children?.some(c => c.key === page);
+
+    return (
+      <>
+        {open && <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setOpen(false)} />}
+        <aside className={`fixed lg:static z-40 top-0 left-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+          <div className="h-14 flex items-center gap-2.5 px-5 border-b border-gray-100">
+            <div className="w-7 h-7 rounded-lg bg-red-600 flex items-center justify-center shrink-0">
+              <CustomLogoIcon size={16} className="text-white" />
+            </div>
+            <span className="font-semibold text-gray-900 text-[14.5px]">NOC Console</span>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto py-3 px-2.5">
+            {NAV.map(item => {
+              const Icon = item.icon;
+              if (!item.children) {
+                const active = page === item.key;
+                return (
+                  <button key={item.key} onClick={() => { setPage(item.key); setOpen(false); }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium mb-0.5 transition ${
+                      active ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-50"
+                    }`}>
+                    <Icon size={16} strokeWidth={2} />
+                    {item.label}
+                  </button>
+                );
+              }
+              const exp = expanded[item.key] || isChildActive(item);
+              return (
+                <div key={item.key} className="mb-0.5">
+                  <button onClick={() => setExpanded(e => ({ ...e, [item.key]: !e[item.key] }))}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px] font-medium text-gray-600 hover:bg-gray-50 transition">
+                    <Icon size={16} strokeWidth={2} />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    {exp ? <ChevronDown size={13} className="text-gray-400" /> : <ChevronRight size={13} className="text-gray-400" />}
+                  </button>
+                  {exp && (
+                    <div className="ml-[27px] border-l border-gray-100 pl-3 mt-0.5 mb-1 space-y-0.5">
+                      {item.children.map(c => {
+                        const active = page === c.key;
+                        return (
+                          <button key={c.key} onClick={() => { setPage(c.key); setOpen(false); }}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-md text-[13px] transition ${
+                              active ? "text-red-700 font-medium bg-red-50" : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                            }`}>
+                            {c.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="p-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-lg text-[11.5px] text-gray-500">
+              <ShieldCheck size={13} className="text-emerald-500" />
+              Session secure · auto-lock in 14m
+            </div>
+          </div>
+        </aside>
+      </>
+    );
+  }
+
+  function Topbar({ pageTitle, user, onLogout, setSidebarOpen, alertCount }) {
+    const [menuOpen, setMenuOpen] = useState(false);
+    return (
+      <header className="h-14 border-b border-gray-200 bg-white/90 backdrop-blur flex items-center justify-between px-4 lg:px-6 sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          <button className="lg:hidden text-gray-500" onClick={() => setSidebarOpen(o => !o)}>
+            <LayoutDashboard size={19} />
+          </button>
+          <h1 className="text-[15px] font-semibold text-gray-900">{pageTitle}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-50 text-gray-500">
+            <Bell size={17} />
+            {alertCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
+                {alertCount}
+              </span>
+            )}
+          </button>
+          <div className="relative">
+            <button onClick={() => setMenuOpen(m => !m)} className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-gray-50">
+              <div className="w-7 h-7 rounded-full bg-red-600 text-white text-[12px] font-semibold flex items-center justify-center">
+                {user.slice(0, 2).toUpperCase()}
+              </div>
+              <span className="text-[13px] font-medium text-gray-700 hidden sm:block">{user}</span>
+              <ChevronDown size={13} className="text-gray-400 hidden sm:block" />
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-11 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1 text-[13px]">
+                <div className="px-3 py-1.5 text-gray-400 text-[11.5px] border-b border-gray-100 mb-1">Signed in as {user}</div>
+                <button onClick={onLogout} className="w-full text-left px-3 py-1.5 hover:bg-red-50 text-red-600 flex items-center gap-2 font-medium">
+                  <LogOut size={13} /> Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  /* ============================================================
+     DASHBOARD
+     ============================================================ */
+
+  function DashboardPage({ metrics, devices, admins }) {
+    const online = devices.filter(d => d.status === "online").length;
+    const offline = devices.filter(d => d.status === "offline").length;
+    const onlineAdmins = admins.filter(a => a.online).length;
+
+    return (
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={Server} label="Total Devices" value={devices.length} accent />
+          <StatCard icon={Wifi} label="Online" value={online} sub={`${((online/devices.length)*100).toFixed(0)}% of network`} />
+          <StatCard icon={WifiOff} label="Offline" value={offline} />
+          <StatCard icon={Gauge} label="Active Alerts" value={metrics.alertCount} accent={metrics.alertCount > 0} />
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard icon={Cpu} label="CPU Usage" value={`${metrics.cpu}%`} />
+          <StatCard icon={MemoryStick} label="RAM Usage" value={`${metrics.ram}%`} />
+          <StatCard icon={Radio} label="Bandwidth" value={`${metrics.bandwidth} Mbps`} />
+          <StatCard icon={Users} label="Admins Online" value={onlineAdmins} />
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-4">
+          <Card>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[13px] font-semibold text-gray-700">Download / Upload</p>
+              <div className="flex gap-3 text-[11px] text-gray-400">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" />Down</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-300" />Up</span>
+              </div>
+            </div>
+            <div className="relative">
+              <Sparkline data={metrics.downloadHistory} color={RED} height={80} />
+              <div className="absolute inset-0">
+                <Sparkline data={metrics.uploadHistory} color="#9CA3AF" height={80} />
+              </div>
+            </div>
+            <div className="flex justify-between mt-2 text-[12px] text-gray-500">
+              <span>↓ {metrics.download} Mbps</span>
+              <span>↑ {metrics.upload} Mbps</span>
+            </div>
+          </Card>
+
+          <Card>
+            <p className="text-[13px] font-semibold text-gray-700 mb-3">Ping / Latency</p>
+            <Sparkline data={metrics.pingHistory} color={RED} height={80} />
+            <div className="flex justify-between mt-2 text-[12px] text-gray-500">
+              <span>Current: {metrics.ping}ms</span>
+              <span>Packet loss: {metrics.packetLoss}%</span>
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-4">
+          <Card>
+            <p className="text-[13px] font-semibold text-gray-700 mb-3">CPU / RAM</p>
+            <Sparkline data={metrics.cpuHistory} color={RED} height={70} />
+            <div className="flex justify-between mt-2 text-[12px] text-gray-500">
+              <span>CPU: {metrics.cpu}%</span>
+              <span>RAM: {metrics.ram}%</span>
+            </div>
+          </Card>
+          <Card>
+            <p className="text-[13px] font-semibold text-gray-700 mb-3">Network Traffic</p>
+            <Sparkline data={metrics.trafficHistory} color={RED} height={70} />
+            <div className="flex justify-between mt-2 text-[12px] text-gray-500">
+              <span>Total: {metrics.bandwidth} Mbps</span>
+              <span>Devices active: {online}</span>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  /* ============================================================
+     NETWORK OVERVIEW
+     ============================================================ */
+
+  function OverviewPage({ metrics, devices }) {
+    const rows = [
+      { label: "Network Status", value: "Operational", ok: true },
+      { label: "Internet Status", value: "Connected", ok: true },
+      { label: "Gateway", value: "192.168.1.1 · Online", ok: true },
+      { label: "DNS", value: "1.1.1.1, 8.8.8.8", ok: true },
+      { label: "Public IP", value: "203.0.113.42" },
+      { label: "Local IP", value: "192.168.1.5" },
+      { label: "Ping", value: `${metrics.ping} ms` },
+      { label: "Latency", value: `${metrics.latency} ms` },
+      { label: "Packet Loss", value: `${metrics.packetLoss}%`, ok: metrics.packetLoss < 1 },
+      { label: "Download Speed", value: `${metrics.download} Mbps` },
+      { label: "Upload Speed", value: `${metrics.upload} Mbps` },
+      { label: "Connected Devices", value: devices.filter(d => d.status !== "offline").length },
+      { label: "Active Connections", value: 47 },
+    ];
+    return (
+      <div className="grid lg:grid-cols-2 gap-4">
+        {rows.map(r => (
+          <Card key={r.label} className="flex items-center justify-between !py-3.5">
+            <span className="text-[13px] text-gray-500">{r.label}</span>
+            <span className={`text-[13.5px] font-semibold ${r.ok === true ? "text-emerald-600" : r.ok === false ? "text-red-600" : "text-gray-800"}`}>
+              {r.value}
+            </span>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  /* ============================================================
+     CONSOLE
+     ============================================================ */
+
+  function ConsolePage({ logs, setLogs, paused, setPaused }) {
+    const [search, setSearch] = useState("");
+    const [filter, setFilter] = useState("ALL");
+    const [autoScroll, setAutoScroll] = useState(true);
+    const bottomRef = useRef(null);
+
+    useEffect(() => {
+      if (autoScroll && bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }, [logs, autoScroll]);
+
+    const filtered = logs.filter(l =>
+      (filter === "ALL" || l.level === filter) &&
+      (search === "" || l.message.toLowerCase().includes(search.toLowerCase()))
+    );
+
+    const levelColor = { INFO: "text-gray-400", WARNING: "text-amber-400", ERROR: "text-red-400" };
+
+    const exportLogs = () => {
+      const blob = new Blob([logs.map(l => `[${l.time}] [${l.level}] ${l.message}`).join("\n")], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "network-console-log.txt"; a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    return (
+      <Card noPad className="overflow-hidden">
+        <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-100 bg-gray-50/60">
+          <div className="relative flex-1 min-w-[160px]">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search log..."
+              className="w-full pl-8 pr-2 py-1.5 text-[12.5px] rounded-md border border-gray-200 outline-none focus:border-red-300 bg-white" />
+          </div>
+          <select value={filter} onChange={e => setFilter(e.target.value)} className="text-[12.5px] border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-600">
+            <option value="ALL">All levels</option>
+            <option value="INFO">INFO</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+          <button onClick={() => setPaused(p => !p)} className="flex items-center gap-1 text-[12.5px] px-2.5 py-1.5 rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50">
+            {paused ? <Play size={12} /> : <Pause size={12} />} {paused ? "Resume" : "Pause"}
+          </button>
+          <button onClick={() => setAutoScroll(a => !a)} className={`flex items-center gap-1 text-[12.5px] px-2.5 py-1.5 rounded-md border ${autoScroll ? "border-red-200 bg-red-50 text-red-700" : "border-gray-200 bg-white text-gray-600"}`}>
+            <ChevronsUpDown size={12} /> Auto-scroll
+          </button>
+          <button onClick={exportLogs} className="flex items-center gap-1 text-[12.5px] px-2.5 py-1.5 rounded-md border border-gray-200 bg-white text-gray-600 hover:bg-gray-50">
+            <Download size={12} /> Export
+          </button>
+          <button onClick={() => setLogs([])} className="flex items-center gap-1 text-[12.5px] px-2.5 py-1.5 rounded-md border border-gray-200 bg-white text-red-600 hover:bg-red-50">
+            <Trash2 size={12} /> Clear
+          </button>
+        </div>
+        <div className="bg-[#0B0D10] h-[480px] overflow-y-auto p-3.5 font-mono text-[12.5px] leading-relaxed">
+          {filtered.length === 0 && <p className="text-gray-600">No log entries.</p>}
+          {filtered.map(l => (
+            <div key={l.id} className="whitespace-pre-wrap">
+              <span className="text-gray-600">[{l.time}]</span>{" "}
+              <span className={`${levelColor[l.level]} font-semibold`}>[{l.level}]</span>{" "}
+              <span className="text-gray-300">{l.message}</span>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+      </Card>
+    );
+  }
+
+  /* ============================================================
+     DEVICES
+     ============================================================ */
+
+  function DevicesPage({ devices, setDevices, toast, confirm }) {
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [selected, setSelected] = useState(null);
+    const [page, setPage] = useState(1);
+    const pageSize = 6;
+
+    const filtered = devices.filter(d =>
+      (statusFilter === "ALL" || d.status === statusFilter) &&
+      (search === "" || d.name.toLowerCase().includes(search.toLowerCase()) || d.ip.includes(search))
+    );
+    const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+    const toggleBlock = (device) => {
+      confirm({
+        title: device.blocked ? "Unblock device?" : "Block this device?",
+        body: `${device.blocked ? "Restore" : "Cut off"} network access for ${device.name} (${device.ip}).`,
+        onConfirm: () => {
+          setDevices(ds => ds.map(d => d.id === device.id ? { ...d, blocked: !d.blocked } : d));
+          toast(`${device.name} ${device.blocked ? "unblocked" : "blocked"}.`, device.blocked ? "success" : "warn");
+        }
+      });
+    };
+
+    return (
+      <div className="space-y-4">
+        <Card noPad>
+          <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-100">
+            <div className="relative flex-1 min-w-[160px]">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search device or IP..."
+                className="w-full pl-8 pr-2 py-1.5 text-[12.5px] rounded-md border border-gray-200 outline-none focus:border-red-300" />
+            </div>
+            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }} className="text-[12.5px] border border-gray-200 rounded-md px-2 py-1.5 text-gray-600">
+              <option value="ALL">All status</option>
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+              <option value="warning">Warning</option>
+            </select>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-left text-gray-400 text-[11.5px] uppercase tracking-wide border-b border-gray-100">
+                  <th className="px-4 py-2.5 font-medium">Device</th>
+                  <th className="px-4 py-2.5 font-medium">IP / MAC</th>
+                  <th className="px-4 py-2.5 font-medium">Type</th>
+                  <th className="px-4 py-2.5 font-medium">Ping</th>
+                  <th className="px-4 py-2.5 font-medium">Bandwidth</th>
+                  <th className="px-4 py-2.5 font-medium">Status</th>
+                  <th className="px-4 py-2.5 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {paged.map(d => (
+                  <tr key={d.id} className="border-b border-gray-50 hover:bg-gray-50/60 transition">
+                    <td className="px-4 py-3">
+                      <button onClick={() => setSelected(d)} className="font-medium text-gray-800 hover:text-red-600 text-left">{d.name}</button>
+                      <div className="flex gap-1 mt-1">
+                        {d.tags?.map(t => <Badge key={t}>{t}</Badge>)}
+                        {d.blocked && <Badge tone="red">blocked</Badge>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      <div>{d.ip}</div>
+                      <div className="text-[11px] text-gray-400">{d.mac}</div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{d.type}</td>
+                    <td className="px-4 py-3 text-gray-500">{d.ping !== null ? `${d.ping}ms` : "—"}</td>
+                    <td className="px-4 py-3 text-gray-500">{d.bandwidth}</td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-1.5">
+                        <StatusDot status={d.status} />
+                        <span className="capitalize text-gray-600 text-[12.5px]">{d.status}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => toggleBlock(d)} className={`text-[12px] font-medium px-2.5 py-1 rounded-md ${d.blocked ? "text-emerald-700 hover:bg-emerald-50" : "text-red-600 hover:bg-red-50"}`}>
+                        {d.blocked ? "Unblock" : "Block"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {paged.length === 0 && (
+                  <tr><td colSpan={7} className="text-center py-10 text-gray-400 text-[13px]">No devices match your filters.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-[12.5px] text-gray-500">
+            <span>{filtered.length} device{filtered.length !== 1 ? "s" : ""}</span>
+            <div className="flex items-center gap-2">
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-2 py-1 rounded-md border border-gray-200 disabled:opacity-40">Prev</button>
+              <span>{page} / {totalPages}</span>
+              <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="px-2 py-1 rounded-md border border-gray-200 disabled:opacity-40">Next</button>
+            </div>
+          </div>
+        </Card>
+
+        {selected && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4" onClick={() => setSelected(null)}>
+            <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{selected.name}</h3>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <StatusDot status={selected.status} />
+                    <span className="text-[12.5px] text-gray-500 capitalize">{selected.status}</span>
+                  </div>
+                </div>
+                <button onClick={() => setSelected(null)} className="text-gray-300 hover:text-gray-500"><X size={17} /></button>
+              </div>
+              <div className="space-y-2 text-[13px]">
+                {[["IP Address", selected.ip], ["MAC Address", selected.mac], ["Type", selected.type],
+                  ["Ping", selected.ping !== null ? `${selected.ping}ms` : "—"], ["Bandwidth", selected.bandwidth],
+                  ["Connected since", selected.connectedSince], ["Last seen", selected.lastSeen]].map(([k, v]) => (
+                  <div key={k} className="flex justify-between py-1.5 border-b border-gray-50">
+                    <span className="text-gray-400">{k}</span><span className="text-gray-800 font-medium">{v}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button className="flex-1 text-[12.5px] font-medium border border-gray-200 rounded-lg py-2 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1.5">
+                  <Tag size={13} /> Add tag
+                </button>
+                <button className="flex-1 text-[12.5px] font-medium border border-gray-200 rounded-lg py-2 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1.5">
+                  <Clock size={13} /> Connection history
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ============================================================
+     TRAFFIC
+     ============================================================ */
+
+  function TrafficPage({ metrics }) {
+    return (
+      <div className="grid lg:grid-cols-2 gap-4">
+        <Card>
+          <p className="text-[13px] font-semibold text-gray-700 mb-3">Download Traffic</p>
+          <Sparkline data={metrics.downloadHistory} color={RED} height={100} />
+          <p className="text-[24px] font-semibold text-gray-900 mt-2">{metrics.download} <span className="text-[13px] text-gray-400 font-normal">Mbps</span></p>
+        </Card>
+        <Card>
+          <p className="text-[13px] font-semibold text-gray-700 mb-3">Upload Traffic</p>
+          <Sparkline data={metrics.uploadHistory} color="#6B7280" height={100} />
+          <p className="text-[24px] font-semibold text-gray-900 mt-2">{metrics.upload} <span className="text-[13px] text-gray-400 font-normal">Mbps</span></p>
+        </Card>
+        <Card>
+          <p className="text-[13px] font-semibold text-gray-700 mb-3">Ping</p>
+          <Sparkline data={metrics.pingHistory} color={RED} height={100} />
+          <p className="text-[24px] font-semibold text-gray-900 mt-2">{metrics.ping} <span className="text-[13px] text-gray-400 font-normal">ms</span></p>
+        </Card>
+        <Card>
+          <p className="text-[13px] font-semibold text-gray-700 mb-3">Packet Loss</p>
+          <Sparkline data={metrics.packetLossHistory} color={RED} height={100} />
+          <p className="text-[24px] font-semibold text-gray-900 mt-2">{metrics.packetLoss} <span className="text-[13px] text-gray-400 font-normal">%</span></p>
+        </Card>
+      </div>
+    );
+  }
+
+  /* ============================================================
+     STATUS
+     ============================================================ */
+
+  function StatusPage({ services }) {
+    const allOp = services.every(s => s.status === "operational");
+    return (
+      <div className="space-y-4">
+        <Card className={`flex items-center gap-3 ${allOp ? "bg-emerald-50/50 border-emerald-100" : "bg-amber-50/50 border-amber-100"}`}>
+          {allOp ? <CheckCircle2 className="text-emerald-600" size={20} /> : <AlertTriangle className="text-amber-600" size={20} />}
+          <p className="text-[14px] font-medium text-gray-700">
+            {allOp ? "All systems operational" : "Some services are experiencing issues"}
+          </p>
+        </Card>
+
+        <Card noPad>
+          {services.map((s, i) => (
+            <div key={s.name} className={`flex items-center justify-between px-5 py-3.5 ${i !== services.length - 1 ? "border-b border-gray-50" : ""}`}>
+              <div className="flex items-center gap-2.5">
+                <StatusDot status={s.status} />
+                <span className="text-[13.5px] font-medium text-gray-700">{s.name}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-[12px] text-gray-400">{s.uptime}% uptime</span>
+                <Badge tone={s.status === "operational" ? "green" : s.status === "degraded" ? "amber" : "red"}>
+                  {s.status}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </Card>
+      </div>
+    );
+  }
+
+  /* ============================================================
+     ALERTS
+     ============================================================ */
+
+  function AlertsPage({ alerts, setAlerts }) {
+    const [filter, setFilter] = useState("ALL");
+    const filtered = alerts.filter(a => filter === "ALL" || a.level === filter.toLowerCase());
+    const iconMap = { critical: AlertOctagon, warning: AlertTriangle, info: Info };
+    const colorMap = { critical: "text-red-600 bg-red-50", warning: "text-amber-600 bg-amber-50", info: "text-gray-500 bg-gray-100" };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          {["ALL", "CRITICAL", "WARNING", "INFO"].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`text-[12.5px] font-medium px-3 py-1.5 rounded-lg border ${filter === f ? "bg-red-600 text-white border-red-600" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+              {f}
+            </button>
+          ))}
+        </div>
+        <div className="space-y-2.5">
+          {filtered.map(a => {
+            const Icon = iconMap[a.level];
+            return (
+              <Card key={a.id} noPad className={`flex items-start gap-3 p-4 ${!a.read ? "border-l-2 border-l-red-500" : ""}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${colorMap[a.level]}`}>
+                  <Icon size={15} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[13.5px] font-medium text-gray-800">{a.title}</p>
+                    <span className="text-[11.5px] text-gray-400">{a.time}</span>
+                  </div>
+                  <p className="text-[12.5px] text-gray-500 mt-0.5">{a.detail}</p>
+                </div>
+                {!a.read && (
+                  <button onClick={() => setAlerts(as => as.map(x => x.id === a.id ? { ...x, read: true } : x))}
+                    className="text-[11.5px] text-gray-400 hover:text-red-600 shrink-0">
+                    Mark read
+                  </button>
+                )}
+              </Card>
+            );
+          })}
+          {filtered.length === 0 && <p className="text-center text-gray-400 text-[13px] py-10">No alerts in this category.</p>}
+        </div>
+      </div>
+    );
+  }
+
+  /* ============================================================
+     ACTIVITY LOGS
+     ============================================================ */
+
+  function ActivityLogsPage({ activity }) {
+    const [search, setSearch] = useState("");
+    const filtered = activity.filter(a => a.admin.toLowerCase().includes(search.toLowerCase()) || a.action.toLowerCase().includes(search.toLowerCase()));
+    return (
+      <Card noPad>
+        <div className="flex items-center gap-2 p-3 border-b border-gray-100">
+          <div className="relative flex-1 max-w-xs">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search admin or action..."
+              className="w-full pl-8 pr-2 py-1.5 text-[12.5px] rounded-md border border-gray-200 outline-none focus:border-red-300" />
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-left text-gray-400 text-[11.5px] uppercase tracking-wide border-b border-gray-100">
+                <th className="px-4 py-2.5 font-medium">Admin</th>
+                <th className="px-4 py-2.5 font-medium">Action</th>
+                <th className="px-4 py-2.5 font-medium">IP</th>
+                <th className="px-4 py-2.5 font-medium">Timestamp</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(a => (
+                <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50/60">
+                  <td className="px-4 py-3 font-medium text-gray-700">{a.admin}</td>
+                  <td className="px-4 py-3 text-gray-600">{a.action}</td>
+                  <td className="px-4 py-3 text-gray-400">{a.ip}</td>
+                  <td className="px-4 py-3 text-gray-400">{a.time}</td>
+                  <td className="px-4 py-3">
+                    <Badge tone={a.status === "success" ? "green" : "red"}>{a.status}</Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    );
+  }
+
+  /* ============================================================
+     ADMIN ACCOUNTS
+     ============================================================ */
+
+  function AccountsPage({ admins, setAdmins, toast, confirm }) {
+    const [showCreate, setShowCreate] = useState(false);
+    const [newAdmin, setNewAdmin] = useState({ username: "", email: "", role: "Admin" });
+
+    const createAdmin = () => {
+      if (!newAdmin.username || !newAdmin.email) { toast("Fill in username and email.", "error"); return; }
+      setAdmins(a => [...a, { id: Date.now(), ...newAdmin, online: false, created: new Date().toISOString().slice(0, 10), lastLogin: "Never", locked: false }]);
+      toast(`Admin account "${newAdmin.username}" created.`, "success");
+      setShowCreate(false);
+      setNewAdmin({ username: "", email: "", role: "Admin" });
+    };
+
+    const toggleLock = (a) => {
+      confirm({
+        title: a.locked ? "Unlock account?" : "Lock this account?",
+        body: `${a.locked ? "Restore" : "Suspend"} access for ${a.username}.`,
+        onConfirm: () => {
+          setAdmins(as => as.map(x => x.id === a.id ? { ...x, locked: !x.locked } : x));
+          toast(`${a.username} ${a.locked ? "unlocked" : "locked"}.`, a.locked ? "success" : "warn");
+        }
+      });
+    };
+
+    const deleteAdmin = (a) => {
+      confirm({
+        title: "Delete admin account?",
+        body: `This permanently removes ${a.username}. This cannot be undone.`,
+        onConfirm: () => {
+          setAdmins(as => as.filter(x => x.id !== a.id));
+          toast(`${a.username} deleted.`, "warn");
+        }
+      });
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium px-3.5 py-2 rounded-lg">
+            <Plus size={14} /> New Admin
+          </button>
+        </div>
+
+        <Card noPad>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-left text-gray-400 text-[11.5px] uppercase tracking-wide border-b border-gray-100">
+                  <th className="px-4 py-2.5 font-medium">Username</th>
+                  <th className="px-4 py-2.5 font-medium">Email</th>
+                  <th className="px-4 py-2.5 font-medium">Role</th>
+                  <th className="px-4 py-2.5 font-medium">Status</th>
+                  <th className="px-4 py-2.5 font-medium">Created</th>
+                  <th className="px-4 py-2.5 font-medium">Last Login</th>
+                  <th className="px-4 py-2.5 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {admins.map(a => (
+                  <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50/60">
+                    <td className="px-4 py-3 font-medium text-gray-800">{a.username}</td>
+                    <td className="px-4 py-3 text-gray-500">{a.email}</td>
+                    <td className="px-4 py-3"><Badge tone={a.role === "Super Admin" ? "red" : "gray"}>{a.role}</Badge></td>
+                    <td className="px-4 py-3">
+                      <span className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${a.locked ? "bg-gray-300" : a.online ? "bg-emerald-500" : "bg-gray-300"}`} />
+                        <span className="text-gray-500 text-[12.5px]">{a.locked ? "Locked" : a.online ? "Online" : "Offline"}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-400">{a.created}</td>
+                    <td className="px-4 py-3 text-gray-400">{a.lastLogin}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-1">
+                        <button title="Reset password" className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md"><KeyRound size={14} /></button>
+                        <button title={a.locked ? "Unlock" : "Lock"} onClick={() => toggleLock(a)} className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-md"><Lock size={14} /></button>
+                        <button title="Delete" onClick={() => deleteAdmin(a)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md"><Trash2 size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        {showCreate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4" onClick={() => setShowCreate(false)}>
+            <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-sm p-5" onClick={e => e.stopPropagation()}>
+              <h3 className="font-semibold text-gray-900 mb-4">Create admin account</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[12px] font-medium text-gray-600 block mb-1">Username</label>
+                  <input value={newAdmin.username} onChange={e => setNewAdmin(n => ({ ...n, username: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-red-300" />
+                </div>
+                <div>
+                  <label className="text-[12px] font-medium text-gray-600 block mb-1">Email</label>
+                  <input value={newAdmin.email} onChange={e => setNewAdmin(n => ({ ...n, email: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-red-300" />
+                </div>
+                <div>
+                  <label className="text-[12px] font-medium text-gray-600 block mb-1">Role</label>
+                  <select value={newAdmin.role} onChange={e => setNewAdmin(n => ({ ...n, role: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13.5px] outline-none focus:border-red-300">
+                    <option>Super Admin</option><option>Admin</option><option>Viewer</option>
+                  </select>
+                </div>
+              </div>
+              <p className="text-[11.5px] text-gray-400 mt-3">A temporary password will be emailed. The account must change it on first login.</p>
+              <div className="flex justify-end gap-2 mt-4">
+                <button onClick={() => setShowCreate(false)} className="px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-gray-600 hover:bg-gray-100">Cancel</button>
+                <button onClick={createAdmin} className="px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-white bg-red-600 hover:bg-red-700">Create</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ============================================================
+     PERMISSIONS
+     ============================================================ */
+
+  function PermissionsPage() {
+    const roles = [
+      { name: "Super Admin", perms: ["Full system access", "Manage admins", "Manage security settings", "Delete data", "View all logs"] },
+      { name: "Admin", perms: ["Manage devices", "Acknowledge alerts", "View logs", "Edit network settings"] },
+      { name: "Viewer", perms: ["View dashboard", "View devices (read-only)", "View status page"] },
+    ];
+    return (
+      <div className="grid md:grid-cols-3 gap-4">
+        {roles.map(r => (
+          <Card key={r.name}>
+            <div className="flex items-center gap-2 mb-3">
+              <Shield size={15} className="text-red-600" />
+              <h3 className="font-semibold text-gray-800 text-[14px]">{r.name}</h3>
+            </div>
+            <ul className="space-y-2">
+              {r.perms.map(p => (
+                <li key={p} className="flex items-center gap-2 text-[12.5px] text-gray-600">
+                  <CheckCircle2 size={13} className="text-emerald-500 shrink-0" /> {p}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  /* ============================================================
+     SETTINGS
+     ============================================================ */
+
+  function SettingsPage({ tab }) {
+    const titles = { general: "General Settings", "sec-network": "Network Settings", security: "Security Settings" };
+    const content = {
+      general: [["System name", "NOC Console"], ["Timezone", "Asia/Ho_Chi_Minh (UTC+7)"], ["Language", "Vietnamese / English"]],
+      "sec-network": [["Gateway IP", "192.168.1.1"], ["DNS Servers", "1.1.1.1, 8.8.8.8"], ["DHCP Range", "192.168.1.100 – 192.168.1.250"], ["Polling interval", "5s"]],
+      security: [["Password policy", "Min 12 chars, hashed with bcrypt"], ["Session timeout", "15 minutes idle"], ["Login rate limit", "5 attempts / 10 min"], ["2FA", "Optional, TOTP-based"], ["Audit logging", "Enabled"]],
+    };
+    return (
+      <Card>
+        <h3 className="font-semibold text-gray-800 mb-4">{titles[tab]}</h3>
+        <div className="space-y-0.5">
+          {content[tab].map(([k, v]) => (
+            <div key={k} className="flex justify-between items-center py-3 border-b border-gray-50 last:border-0">
+              <span className="text-[13px] text-gray-500">{k}</span>
+              <span className="text-[13px] font-medium text-gray-800">{v}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
+  /* ============================================================
+     EMPTY WRAPPER PAGES
+     ============================================================ */
+
+  function PageTitleFor(page) {
+    const map = {
+      dashboard: "Dashboard", overview: "Network Overview", devices: "Network Devices", console: "Network Console",
+      traffic: "Network Traffic", status: "Network Status", alerts: "Alerts", logs: "Activity Logs",
+      accounts: "Admin Accounts", permissions: "Permissions", general: "Settings", "sec-network": "Settings", security: "Settings",
+    };
+    return map[page] || "NOC Console";
+  }
+
+  /* ============================================================
+     ROOT APP
+     ============================================================ */
+
+  function App() {
+    const [authed, setAuthed] = useState(false);
+    const [user, setUser] = useState("");
+    const [page, setPage] = useState("dashboard");
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const [devices, setDevices] = useState(seedDevices);
+    const [admins, setAdmins] = useState(seedAdmins);
+    const [activity, setActivity] = useState(seedActivity);
+    const [alerts, setAlerts] = useState(seedAlerts);
+    const [services] = useState(seedServices);
+    const [logs, setLogs] = useState(() => Array.from({ length: 12 }, (_, i) => genLog(i)));
+    const [paused, setPaused] = useState(false);
+    const logIdRef = useRef(12);
+
+    const [toasts, setToasts] = useState([]);
+    const toast = useCallback((msg, tone = "success") => {
+      const id = Date.now();
+      setToasts(t => [...t, { id, msg, tone }]);
+      setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
+    }, []);
+    const removeToast = (id) => setToasts(t => t.filter(x => x.id !== id));
+
+    const [confirmState, setConfirmState] = useState(null);
+    const confirm = ({ title, body, onConfirm }) => setConfirmState({ title, body, onConfirm });
+
+    const [metrics, setMetrics] = useState({
+      cpu: 34, ram: 58, download: 62.4, upload: 18.2, ping: 12, latency: 14, packetLoss: 0.2, bandwidth: 210,
+      alertCount: seedAlerts.filter(a => !a.read).length,
+      downloadHistory: Array.from({ length: 30 }, () => 40 + Math.random() * 40),
+      uploadHistory: Array.from({ length: 30 }, () => 10 + Math.random() * 20),
+      pingHistory: Array.from({ length: 30 }, () => 8 + Math.random() * 20),
+      packetLossHistory: Array.from({ length: 30 }, () => Math.random() * 2),
+      cpuHistory: Array.from({ length: 30 }, () => 20 + Math.random() * 40),
+      trafficHistory: Array.from({ length: 30 }, () => 150 + Math.random() * 100),
+    });
+
+    // realtime metric simulation
+    useEffect(() => {
+      if (!authed) return;
+      const iv = setInterval(() => {
+        setMetrics(m => {
+          const next = (arr, base, spread) => [...arr.slice(1), Math.max(0, base + (Math.random() - 0.5) * spread)];
+          return {
+            ...m,
+            cpu: Math.round(Math.max(5, Math.min(95, m.cpu + (Math.random() - 0.5) * 8))),
+            ram: Math.round(Math.max(10, Math.min(95, m.ram + (Math.random() - 0.5) * 5))),
+            download: +(Math.max(5, m.download + (Math.random() - 0.5) * 10)).toFixed(1),
+            upload: +(Math.max(2, m.upload + (Math.random() - 0.5) * 4)).toFixed(1),
+            ping: Math.max(1, Math.round(m.ping + (Math.random() - 0.5) * 4)),
+            latency: Math.max(1, Math.round(m.latency + (Math.random() - 0.5) * 4)),
+            packetLoss: +Math.max(0, (m.packetLoss + (Math.random() - 0.5) * 0.3)).toFixed(1),
+            bandwidth: Math.round(Math.max(50, m.bandwidth + (Math.random() - 0.5) * 20)),
+            downloadHistory: next(m.downloadHistory, m.download, 15),
+            uploadHistory: next(m.uploadHistory, m.upload, 8),
+            pingHistory: next(m.pingHistory, m.ping, 8),
+            packetLossHistory: next(m.packetLossHistory, m.packetLoss, 1),
+            cpuHistory: next(m.cpuHistory, m.cpu, 15),
+            trafficHistory: next(m.trafficHistory, m.bandwidth, 40),
+          };
+        });
+      }, 2000);
+      return () => clearInterval(iv);
+    }, [authed]);
+
+    // realtime console log simulation
+    useEffect(() => {
+      if (!authed || paused) return;
+      const iv = setInterval(() => {
+        logIdRef.current += 1;
+        setLogs(l => [...l.slice(-200), genLog(logIdRef.current)]);
+      }, 2500);
+      return () => clearInterval(iv);
+    }, [authed, paused]);
+
+    const handleLogin = (username) => {
+      setUser(username);
+      setAuthed(true);
+      setActivity(a => [{ id: Date.now(), admin: username, action: "Logged in", ip: "192.168.1.5", time: new Date().toISOString().slice(0, 19).replace("T", " "), status: "success" }, ...a]);
+      toast(`Welcome back, ${username}.`, "success");
+    };
+
+    const handleLogout = () => {
+      setActivity(a => [{ id: Date.now(), admin: user, action: "Logged out", ip: "192.168.1.5", time: new Date().toISOString().slice(0, 19).replace("T", " "), status: "success" }, ...a]);
+      setAuthed(false);
+      setUser("");
+    };
+
+    if (!authed) return <LoginPage onLogin={handleLogin} />;
+
+    return (
+      <div className="min-h-screen bg-gray-50 flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Topbar pageTitle={PageTitleFor(page)} user={user} onLogout={handleLogout} setSidebarOpen={setSidebarOpen} alertCount={alerts.filter(a => !a.read).length} />
+          <main className="flex-1 p-4 lg:p-6 max-w-[1400px] w-full mx-auto">
+            {page === "dashboard" && <DashboardPage metrics={metrics} devices={devices} admins={admins} />}
+            {page === "overview" && <OverviewPage metrics={metrics} devices={devices} />}
+            {page === "devices" && <DevicesPage devices={devices} setDevices={setDevices} toast={toast} confirm={confirm} />}
+            {page === "console" && <ConsolePage logs={logs} setLogs={setLogs} paused={paused} setPaused={setPaused} />}
+            {page === "traffic" && <TrafficPage metrics={metrics} />}
+            {page === "status" && <StatusPage services={services} />}
+            {page === "alerts" && <AlertsPage alerts={alerts} setAlerts={setAlerts} />}
+            {page === "logs" && <ActivityLogsPage activity={activity} />}
+            {page === "accounts" && <AccountsPage admins={admins} setAdmins={setAdmins} toast={toast} confirm={confirm} />}
+            {page === "permissions" && <PermissionsPage />}
+            {["general", "sec-network", "security"].includes(page) && <SettingsPage tab={page} />}
+          </main>
+        </div>
+        <Toast toasts={toasts} remove={removeToast} />
+        <ConfirmModal
+          open={!!confirmState}
+          title={confirmState?.title}
+          body={confirmState?.body}
+          onCancel={() => setConfirmState(null)}
+          onConfirm={() => { confirmState?.onConfirm(); setConfirmState(null); }}
+        />
+      </div>
+    );
+  }
+
+
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(<App />);
+});
+</script>
+</body>
+</html>
