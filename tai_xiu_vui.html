@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tài Xỉu Vui</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial,sans-serif;color:#fff;display:flex;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 20%,#4b238c,#130d2d 45%,#05050c);overflow:hidden}
+.wrap{width:min(760px,94vw);padding:25px;border-radius:28px;background:#090916dd;border:1px solid #ffffff22;box-shadow:0 20px 80px #0009;backdrop-filter:blur(15px)}
+h1{text-align:center;font-size:42px;margin:5px 0 4px;letter-spacing:3px;text-shadow:0 0 25px #a855f7}.sub{text-align:center;color:#aaa5c7;margin:0 0 22px}
+button{border:0;border-radius:15px;padding:14px 30px;font-weight:800;font-size:18px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#7c3aed,#06b6d4);box-shadow:0 0 25px #7c3aed66}
+button:hover{transform:translateY(-2px)}#game{text-align:center}.dice{display:flex;justify-content:center;gap:18px;margin:28px 0}.die{width:90px;height:90px;border-radius:20px;background:linear-gradient(145deg,#fff,#cfd3df);color:#111;display:grid;place-items:center;font-size:48px;font-weight:bold;box-shadow:0 12px 30px #0008,0 0 20px #fff3}.shake{animation:shake .55s}@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(12deg) scale(1.08)}50%{transform:rotate(-12deg) scale(.95)}75%{transform:rotate(8deg) scale(1.05)}}
+.total{font-size:26px;margin:12px}.result{font-size:40px;font-weight:900;margin:8px;text-shadow:0 0 22px currentColor}.tai{color:#38bdf8}.xiu{color:#c084fc}.history{margin-top:22px;border-top:1px solid #ffffff18;padding-top:15px;color:#c9c4df;max-height:130px;overflow:auto}.row{padding:5px}.start{display:flex;justify-content:center;margin-bottom:8px}
+</style>
+</head>
+<body><div class="wrap">
+<h1>🎲 TÀI XỈU VUI</h1><p class="sub">Xúc xắc giải trí — không cá cược</p>
+<div class="start"><button id="start">▶ START</button></div>
+<div id="game" style="display:none">
+<div class="dice"><div class="die" id="d1">⚀</div><div class="die" id="d2">⚀</div><div class="die" id="d3">⚀</div></div>
+<button id="roll">🎲 LẮC XÚC XẮC</button>
+<div class="total">Tổng: <b id="total">-</b></div><div id="result" class="result">-</div>
+<div class="history" id="history">Lịch sử lượt chơi sẽ hiện ở đây.</div>
+</div></div>
+<script>
+const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];let hist=[];
+start.onclick=()=>{game.style.display='block';start.style.display='none'};
+roll.onclick=()=>{
+ roll.disabled=true; document.querySelectorAll('.die').forEach(x=>x.classList.add('shake'));
+ setTimeout(()=>{
+  let a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6),c=1+Math.floor(Math.random()*6),s=a+b+c;
+  [d1,d2,d3].forEach((e,i)=>{e.textContent=faces[[a,b,c][i]];e.classList.remove('shake')});
+  total.textContent=s;let r=s>=11?'TÀI':'XỈU';result.textContent=r;result.className='result '+(r==='TÀI'?'tai':'xiu');
+  hist.unshift(`#${hist.length+1} — ${a}+${b}+${c} = ${s} → ${r}`);history.innerHTML=hist.slice(0,12).map(x=>`<div class="row">${x}</div>`).join('');
+  roll.disabled=false;
+ },600)
+};
+</script></body></html>
